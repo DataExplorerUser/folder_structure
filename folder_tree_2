@@ -1,0 +1,78 @@
+import os
+from collections import OrderedDict
+
+def showFolderTree(path, show_files=False, indentation=4, file_output=False):
+    """
+    Shows the content of a folder in a tree structure.
+    path -(string)- path of the root folder we want to show.
+    show_files -(boolean)-  Whether or not we want to see files listed.
+                            Defaults to False.
+    indentation -(int)- Indentation we want to use, defaults to 2.
+    file_output -(string)-  Path (including the name) of the file where we want
+                            to save the tree.
+    """
+    tree = []
+    tree.append(f'Folder level; File size; Folder name; Full path name; Level 0; Level 1; Level 2; Level 3; Level 4; Level 5; Level 6; Level 7; Level 8; Level 9; Level 10; Level 11; Level 12; Level 13; Level 14; Level 15; Level 16; Level 17; Level 18; Level 19; Level 20')
+
+    if not show_files:
+        for root, dirs, files in os.walk(path):
+            level = root.replace(path, '').count(os.sep)
+            indent = '_' * indentation * (level)
+            # basename provides just the name of a folder without the full path
+            # abspath provides the full path of a folder
+            # dirname  provides the full path, but with a non-Windows notation
+            folder_base_name = os.path.basename(root)
+            folder_fullpath_name = os.path.abspath(root)
+            fullpath_name_clean = folder_fullpath_name.replace('\\\\', '\\')
+            fullpath_name_split = fullpath_name_clean.split(sep="\\")
+            subfolder_string = ';'.join(fullpath_name_split)
+            subfolder_string.replace(';;', ';.;')
+
+            folder_size = 0
+
+            for f in files:
+                filename = os.path.join(folder_fullpath_name, f)
+                filesize = os.stat(filename).st_size
+                folder_size += filesize
+
+            if not "$RECYCLE.BIN" in folder_base_name:
+                    tree.append(f'{level}; {folder_size}; {folder_base_name}; {folder_fullpath_name}; {subfolder_string}')
+
+    # remove duplicates
+    tree = list(OrderedDict.fromkeys(tree))
+
+    print(f'Number of files: {len(tree)}')
+
+    if show_files:
+        for root, dirs, files in os.walk(path):
+            level = root.replace(path, '').count(os.sep)
+            indent = ' ' * indentation * (level)
+            tree.append('{}{}/'.format(indent, os.path.basename(root)))
+
+            folder_base_name = os.path.basename(root)
+            folder_fullpath_name = os.path.abspath(root)
+            fullpath_name_clean = folder_fullpath_name.replace('\\\\', '\\')
+            fullpath_name_split = fullpath_name_clean.split(sep="\\")
+            subfolder_string = ';'.join(fullpath_name_split)
+            subfolder_string.replace(';;', ';.;')
+
+            for f in files:
+                filename = os.path.join(folder_fullpath_name, f)
+                filesize = os.stat(filename).st_size
+
+                subindent = ' ' * indentation * (level + 1)
+                tree.append('{}{}'.format(subindent, f))
+
+
+    if file_output:
+        output_file = open(file_output, 'w')
+        for line in tree:
+            output_file.write(line)
+            output_file.write('\n')
+    else:
+        # Default behaviour: print on screen.
+        for line in tree:
+            print(line)
+
+
+showFolderTree("C:", show_files=False, indentation=2, file_output="C:\folder_tree_report.txt")
